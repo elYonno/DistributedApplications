@@ -1,5 +1,6 @@
 package hotel;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,5 +28,15 @@ public class Room {
 
 	public void setBookings(List<BookingDetail> bookings) {
 		this.bookings = bookings;
+	}
+
+	public boolean available(LocalDate date)
+	{
+		for (BookingDetail bookingDetail : getBookings())
+		{
+			if (bookingDetail.getDate().equals(date))
+				return false;
+		}
+		return true;
 	}
 }

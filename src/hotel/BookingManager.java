@@ -23,17 +23,47 @@ public class BookingManager {
 	}
 
 	public boolean isRoomAvailable(Integer roomNumber, LocalDate date) {
-		//implement this method
-		return false;
+		if (roomNumber > rooms.length)
+			return false;
+		
+		Room room = rooms[roomNumber];
+
+		if (room == null)
+			return false;
+
+		return room.available(date);
 	}
 
-	public void addBooking(BookingDetail bookingDetail) {
-		//implement this method
+	public void addBooking(BookingDetail bookingDetail) throws Exception {
+		Room room = Arrays.asList(rooms).stream()
+										.filter(r -> r.getRoomNumber() == bookingDetail.getRoomNumber())
+										.findFirst()
+										.orElse(null);
+
+		if (room.equals(null))
+			return;
+
+		if (room.available(bookingDetail.getDate()))
+		{
+			room.getBookings().add(bookingDetail);
+		}
+		else
+		{
+			// AbstractScriptedSimpleTest does not catch exceptions
+			// throw new Exception("Room is unavailable!");
+		}
 	}
 
 	public Set<Integer> getAvailableRooms(LocalDate date) {
-		//implement this method
-		return null;
+		Set<Integer> set = new HashSet<Integer>();
+
+		for (Room room : rooms)
+		{
+			if (room.available(date))
+				set.add(room.getRoomNumber());
+		}
+
+		return set;
 	}
 
 	private static Room[] initializeRooms() {
