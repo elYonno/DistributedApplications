@@ -1,10 +1,17 @@
 package hotel;
 
+import staff.SessionClient;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Room {
+
+	private static final Logger logger = Logger.getLogger(SessionClient.class.getName());
 
 	private Integer roomNumber;
 	private List<BookingDetail> bookings;
@@ -28,6 +35,20 @@ public class Room {
 
 	public synchronized void setBookings(List<BookingDetail> bookings) {
 		this.bookings = bookings;
+	}
+
+	public synchronized void addBooking(BookingDetail bookingDetail) {
+		logger.log(Level.INFO, "Adding booking to room {0}", roomNumber);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			logger.log(Level.WARNING, "Could not sleep");
+		}
+		bookings.add(bookingDetail);
+		String message = String.format(
+				Locale.ENGLISH,"Booking for %s added to room %d",
+				bookingDetail.getGuest(), roomNumber);
+		logger.log(Level.INFO, message);
 	}
 
 	public synchronized boolean available(LocalDate date) {

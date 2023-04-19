@@ -44,10 +44,13 @@ public class SessionClient {
     /* class code */
 
     private final BookingInterface bookingInterface;
+    private final Integer sessionKey;
+
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy");
 
-    public SessionClient(BookingInterface bookingInterface) {
+    public SessionClient(BookingInterface bookingInterface) throws RemoteException {
         this.bookingInterface = bookingInterface;
+        this.sessionKey = bookingInterface.connect();
     }
 
     public void run() {
@@ -81,7 +84,7 @@ public class SessionClient {
             else if (input.startsWith("rooms"))
                 System.out.print(bookingInterface.printRooms());
             else if (input.startsWith("cart"))
-                System.out.print(bookingInterface.currentCart());
+                System.out.print(bookingInterface.currentCart(sessionKey));
             else
                 System.out.println("Unknown command");
         }
@@ -99,7 +102,7 @@ public class SessionClient {
                     Integer.valueOf(parameter[2]),
                     LocalDate.parse(parameter[3], formatter));
 
-            AddBookingStatus status = bookingInterface.addBookingDetail(bookingDetail);
+            AddBookingStatus status = bookingInterface.addBookingDetail(sessionKey, bookingDetail);
 
             if (status == AddBookingStatus.OK)
                 System.out.println("Added booking");
@@ -107,6 +110,8 @@ public class SessionClient {
                 System.out.println("Booking already exists");
             else if (status == AddBookingStatus.INVALID_ROOM)
                 System.out.println("Invalid room");
+            else if (status == AddBookingStatus.ERROR)
+                System.out.println("Error adding booking");
 
         } catch (DateTimeException | IllegalArgumentException e) {
             logger.warning(e.getMessage());
@@ -114,7 +119,7 @@ public class SessionClient {
     }
 
     private void confirm() throws RemoteException {
-        if (bookingInterface.bookAll())
+        if (bookingInterface.bookAll(sessionKey))
         {
             System.out.println("Booking completed");
         } else {

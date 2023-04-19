@@ -3,15 +3,19 @@ package hotel;
 import java.rmi.RemoteException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BookingManager implements BookingInterface {
 
 	private final Room[] rooms;
-	private Set<BookingDetail> currentBookings;
+	private static final Logger logger = Logger.getLogger(BookingManager.class.getName());
+	private final Map<Integer, Set<BookingDetail>> bookingSessions;
+	private Integer clients = 0;
 
 	public BookingManager() {
 		this.rooms = initializeRooms();
-		currentBookings = new HashSet<>();
+		this.bookingSessions = new HashMap<>();
 	}
 
 	public Set<Integer> getAllRooms() {
@@ -41,15 +45,24 @@ public class BookingManager implements BookingInterface {
 			return;
 
 		if (room.available(bookingDetail.getDate())) {
-			room.getBookings().add(bookingDetail);
+			room.addBooking(bookingDetail);
 		} else {
 			throw new Exception("Room is unavailable!");
 		}
 	}
 
 	@Override
-	public String currentCart() throws RemoteException {
-		if (currentBookings.isEmpty())
+	public int connect() throws RemoteException {
+		Integer key = clients++;
+		addClient(key);
+		return key;
+	}
+
+	@Override
+	public String currentCart(Integer key) throws RemoteException {
+		Set<BookingDetail> currentBookings = getClientBookings(false, key);
+
+		if (currentBookings == null || currentBookings.isEmpty())
 			return "No bookings in this session!\n";
 		else {
 			StringBuilder builder = new StringBuilder();
@@ -74,7 +87,11 @@ public class BookingManager implements BookingInterface {
 	}
 
 	@Override
-	public AddBookingStatus addBookingDetail(BookingDetail bookingDetail) throws RemoteException {
+	public AddBookingStatus addBookingDetail(Integer key, BookingDetail bookingDetail) throws RemoteException {
+		Set<BookingDetail> currentBookings = getClientBookings(true, key);
+		if (currentBookings == null)
+			return AddBookingStatus.ERROR;
+
 		if (getRoom(bookingDetail.getRoomNumber()) != null) {
 			if (currentBookings.add(bookingDetail))
 				return AddBookingStatus.OK;
@@ -90,7 +107,11 @@ public class BookingManager implements BookingInterface {
 	 * @return True if booking is completed. False if failed.
 	 */
 	@Override
-	public synchronized boolean bookAll() throws RemoteException {
+	public synchronized boolean bookAll(Integer key) throws RemoteException {
+		Set<BookingDetail> currentBookings = getClientBookings(false, key);
+		if (currentBookings == null)
+			return false;
+
 		// check all rooms are available
 		for (BookingDetail booking : currentBookings) {
 			Room room = getRoom(booking.getRoomNumber());
@@ -102,7 +123,7 @@ public class BookingManager implements BookingInterface {
 		currentBookings.forEach(booking -> {
 			Room room = getRoom(booking.getRoomNumber());
 			assert (room != null);
-			room.getBookings().add(booking);
+			room.addBooking(booking);
 		});
 
 		currentBookings.clear();
@@ -119,6 +140,24 @@ public class BookingManager implements BookingInterface {
 		}
 
 		return set;
+	}
+
+	private Set<BookingDetail> getClientBookings(boolean createNew, Integer key) {
+		Set<BookingDetail> bookingDetails = bookingSessions.get(key);
+		if (bookingDetails == null && createNew) bookingDetails = addClient(key);
+
+		return bookingDetails;
+	}
+
+	private Set<BookingDetail> addClient(Integer key)  {
+		if (bookingSessions.containsKey(key))
+			return bookingSessions.get(key);
+		else {
+			logger.log(Level.INFO, "Got new client {0}", key);
+			Set<BookingDetail> bookingDetails = new HashSet<>();
+			bookingSessions.put(key, bookingDetails);
+			return bookingDetails;
+		}
 	}
 
 	private Room getRoom(Integer roomNumber) {

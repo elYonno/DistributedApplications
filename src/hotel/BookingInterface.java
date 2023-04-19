@@ -2,11 +2,11 @@ package hotel;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.Set;
 
 public interface BookingInterface extends Remote {
+     int connect() throws RemoteException;
      String printRooms() throws RemoteException;
-     String currentCart() throws RemoteException;
-     AddBookingStatus addBookingDetail(BookingDetail bookingDetail) throws RemoteException;
-     boolean bookAll() throws RemoteException;;
+     String currentCart(Integer key) throws RemoteException;
+     AddBookingStatus addBookingDetail(Integer key, BookingDetail bookingDetail) throws RemoteException;
+     boolean bookAll(Integer key) throws RemoteException;;
 }
