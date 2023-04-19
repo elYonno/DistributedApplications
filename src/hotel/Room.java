@@ -11,32 +11,47 @@ public class Room {
 
 	public Room(Integer roomNumber) {
 		this.roomNumber = roomNumber;
-		bookings = new ArrayList<BookingDetail>();
+		bookings = new ArrayList<>();
 	}
 
-	public Integer getRoomNumber() {
+	public synchronized Integer getRoomNumber() {
 		return roomNumber;
 	}
 
-	public void setRoomNumber(Integer roomNumber) {
+	public synchronized void setRoomNumber(Integer roomNumber) {
 		this.roomNumber = roomNumber;
 	}
 
-	public List<BookingDetail> getBookings() {
+	public synchronized List<BookingDetail> getBookings() {
 		return bookings;
 	}
 
-	public void setBookings(List<BookingDetail> bookings) {
+	public synchronized void setBookings(List<BookingDetail> bookings) {
 		this.bookings = bookings;
 	}
 
-	public boolean available(LocalDate date)
-	{
-		for (BookingDetail bookingDetail : getBookings())
-		{
+	public synchronized boolean available(LocalDate date) {
+		for (BookingDetail bookingDetail : getBookings()) {
 			if (bookingDetail.getDate().equals(date))
 				return false;
 		}
 		return true;
+	}
+
+	@Override
+	public synchronized String toString() {
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("Number = ").append(roomNumber).append("\n");
+
+		if (!bookings.isEmpty()) {
+			buffer.append("\tBookings:\n");
+
+			for (BookingDetail booking : bookings) {
+				buffer.append("\t");
+				buffer.append(booking.toString());
+			}
+		}
+
+		return buffer.toString();
 	}
 }
