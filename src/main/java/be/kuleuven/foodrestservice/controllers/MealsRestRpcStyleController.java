@@ -31,4 +31,13 @@ public class MealsRestRpcStyleController {
         return mealsRepository.getAllMeal();
     }
 
+    @GetMapping("/restrpc/cheapest")
+    Meal getCheapestMeal() {
+        return mealsRepository.getCheapestMeal();
+    }
+
+    @GetMapping("restrpc/largest")
+    Meal getLargestMeal() {
+        return mealsRepository.getLargestMeal();
+    }
 }

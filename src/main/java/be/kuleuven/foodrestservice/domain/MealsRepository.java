@@ -5,6 +5,7 @@ import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class MealsRepository {
@@ -55,4 +56,58 @@ public class MealsRepository {
         return meals.values();
     }
 
+    public Meal getCheapestMeal() {
+        return meals.values()
+                .stream()
+                .min(Comparator.comparing(Meal::getPrice))
+                .orElseThrow();
+    }
+
+    public Meal getLargestMeal() {
+        return meals.values()
+                .stream()
+                .max(Comparator.comparing(Meal::getKcal))
+                .orElseThrow();
+    }
+
+    public boolean addMeal(Meal meal) {
+        if (meal == null || meal.getId() == null)
+            return false;
+
+        if (meals.containsKey(meal.id)) {
+            return false;
+        } else {
+            meals.put(meal.id, meal);
+            return true;
+        }
+    }
+
+    public Meal updateMeal(String id, Meal newMeal) {
+        if (id == null || newMeal == null)
+            return null;
+
+        Meal oldMeal = meals.get(id);
+
+        if (oldMeal == null)
+            return null;
+        else {
+            oldMeal.update(newMeal);
+            return oldMeal;
+        }
+    }
+
+    public boolean deleteMeal(String id) {
+        if (id == null)
+            return false;
+        else {
+            AtomicBoolean result = new AtomicBoolean(false);
+
+            findMeal(id).ifPresentOrElse(meal -> {
+                meals.remove(id);
+                result.set(true);
+            }, ()-> result.set(false));
+
+            return result.get();
+        }
+    }
 }

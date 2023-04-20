@@ -59,6 +59,15 @@ public class Meal {
         this.mealType = mealType;
     }
 
+    public void update(Meal newMeal) {
+        if (newMeal.getId() != null)            setId(newMeal.getId());
+        if (newMeal.getName() != null)          setName(newMeal.getName());
+        if (newMeal.getKcal() != null)          setKcal(newMeal.getKcal());
+        if (newMeal.getPrice() != null)         setPrice(newMeal.getPrice());
+        if (newMeal.getDescription() != null)   setDescription(newMeal.getDescription());
+        if (newMeal.getMealType() != null)      setMealType(newMeal.getMealType());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,10 +1,17 @@
 package be.kuleuven.foodrestservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum MealType {
 
+    @JsonProperty("vegan")
     VEGAN("vegan"),
+    @JsonProperty("veggie")
     VEGGIE("veggie"),
+    @JsonProperty("meat")
     MEAT("meat"),
+    @JsonProperty("fish")
     FISH("fish");
     private final String value;
 
@@ -12,7 +19,8 @@ public enum MealType {
         value = v;
     }
 
-    public String value() {
+    @Override
+    public String toString() {
         return value;
     }
 
@@ -23,5 +31,10 @@ public enum MealType {
             }
         }
         throw new IllegalArgumentException(v);
+    }
+
+    @JsonCreator
+    public static MealType create(String value) {
+        return fromValue(value);
     }
 }

@@ -6,6 +6,8 @@ import be.kuleuven.foodrestservice.exceptions.MealNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -40,6 +42,49 @@ public class MealsRestController {
         }
         return CollectionModel.of(mealEntityModels,
                 linkTo(methodOn(MealsRestController.class).getMeals()).withSelfRel());
+    }
+
+    @GetMapping("/rest/cheapest")
+    EntityModel<Meal> getCheapestMeal() {
+        Meal meal = mealsRepository.getCheapestMeal();
+        return mealToEntityModel(meal.getId(), meal);
+    }
+
+    @GetMapping("/rest/largest")
+    EntityModel<Meal> getLargestMeal() {
+        Meal meal = mealsRepository.getLargestMeal();
+        return mealToEntityModel(meal.getId(), meal);
+    }
+
+    @PutMapping("/rest/add")
+    ResponseEntity<?> addMeal(@RequestBody Meal newMeal) {
+        if (mealsRepository.addMeal(newMeal)) {
+            // success
+            EntityModel<Meal> model = mealToEntityModel(newMeal.getId(), newMeal);
+            return ResponseEntity.ok(model);
+        } else {
+            // fail
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+        }
+    }
+
+    @PostMapping("/rest/update/{id}")
+    ResponseEntity<?> updateMeal(@PathVariable String id, @RequestBody Meal newMeal) {
+        Meal meal = mealsRepository.updateMeal(id, newMeal);
+        if (meal != null) {
+            EntityModel<Meal> model = mealToEntityModel(meal.getId(), meal);
+            return ResponseEntity.ok(model);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @DeleteMapping("/rest/delete/{id}")
+    ResponseEntity<?> deleteMeal(@PathVariable String id) {
+        if (mealsRepository.deleteMeal(id))
+            return ResponseEntity.ok().build();
+        else
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     private EntityModel<Meal> mealToEntityModel(String id, Meal meal) {
