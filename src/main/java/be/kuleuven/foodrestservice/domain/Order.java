@@ -8,6 +8,11 @@ public class Order {
     protected String address;
     protected List<String> meals;
 
+    public Order(String address, List<String> meals) {
+        this.address = address;
+        this.meals = meals;
+    }
+
     public String getAddress() {
         return address;
     }
