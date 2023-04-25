@@ -60,6 +60,8 @@ public class Meal {
     }
 
     public void update(Meal newMeal) {
+        if (newMeal == null) return;
+
         if (newMeal.getId() != null)            setId(newMeal.getId());
         if (newMeal.getName() != null)          setName(newMeal.getName());
         if (newMeal.getKcal() != null)          setKcal(newMeal.getKcal());

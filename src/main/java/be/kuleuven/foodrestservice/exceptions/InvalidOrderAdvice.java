@@ -7,12 +7,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-public class MealExistsAdvice {
-
+public class InvalidOrderAdvice {
     @ResponseBody
-    @ExceptionHandler(MealExistsException.class)
+    @ExceptionHandler(InvalidOrderException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    String mealExistsHandler(MealExistsException ex) {
+    String mealExistsHandler(InvalidOrderException ex) {
         return ex.getMessage();
     }
 }

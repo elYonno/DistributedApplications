@@ -1,9 +1,12 @@
 package be.kuleuven.foodrestservice.domain;
 
+import be.kuleuven.foodrestservice.exceptions.InvalidOrderException;
+import be.kuleuven.foodrestservice.exceptions.MealNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -11,6 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MealsRepository {
     // map: id -> meal
     private static final Map<String, Meal> meals = new HashMap<>();
+
+    private static final Map<Integer, OrderConfirmation> orders = new HashMap<>();
 
     @PostConstruct
     public void initData() {
@@ -50,6 +55,19 @@ public class MealsRepository {
         Assert.notNull(id, "The meal id must not be null");
         Meal meal = meals.get(id);
         return Optional.ofNullable(meal);
+    }
+
+    public List<Meal> findMeals(List<String> names) throws MealNotFoundException {
+        List<Meal> mealList = new ArrayList<>(names.size());
+
+        for (String name : names) {
+            mealList.add(
+                    findMeal(name)
+                    .orElseThrow(()-> new MealNotFoundException(name))
+            );
+        }
+
+        return mealList;
     }
 
     public Collection<Meal> getAllMeal() {
@@ -108,6 +126,46 @@ public class MealsRepository {
             }, ()-> result.set(false));
 
             return result.get();
+        }
+    }
+
+    /**
+     * Open the order and generates a reply
+     * @param order Message order
+     * @return Order reply, including order total
+     * @throws MealNotFoundException thrown when one of the meals in the order is not found
+     * @throws InvalidOrderException thrown when the order is invalid (null or empty)
+     */
+    public OrderConfirmation addOrder(Order order)  {
+        if (order == null)
+            throw new InvalidOrderException("Order is null");
+
+        List<String> orderList = order.getMeals();
+        if (orderList.size() == 0)
+            throw new InvalidOrderException("Order is empty");
+        else {
+            List<Meal> orderMeals = findMeals(orderList);
+
+            double total = orderMeals.stream()
+                    .mapToDouble(Meal::getPrice)
+                    .sum();
+
+            LocalDateTime time = LocalDateTime.now().plusMinutes(30);
+
+            OrderConfirmation confirmation = new OrderConfirmation(
+                    String.format("Thank you for your order! The total is £%.2f. " +
+                            "We will deliver to your address, %s, " +
+                            "at approximately %d:%d",
+                            total, order.getAddress(), time.getHour(), time.getMinute()),
+                    order.getAddress(), orderMeals, total, time
+            );
+
+            if (orders.containsKey(confirmation.hashCode()))
+                throw new InvalidOrderException("Order already exists");
+
+            orders.put(confirmation.hashCode(), confirmation);
+
+            return confirmation;
         }
     }
 }

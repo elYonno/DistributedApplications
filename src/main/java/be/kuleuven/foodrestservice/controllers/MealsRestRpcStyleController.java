@@ -1,13 +1,11 @@
 package be.kuleuven.foodrestservice.controllers;
 
-import be.kuleuven.foodrestservice.domain.Meal;
-import be.kuleuven.foodrestservice.domain.MealsRepository;
+import be.kuleuven.foodrestservice.domain.*;
 import be.kuleuven.foodrestservice.exceptions.MealExistsException;
 import be.kuleuven.foodrestservice.exceptions.MealNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.ExemptionMechanismException;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -48,6 +46,7 @@ public class MealsRestRpcStyleController {
      * <a href="https://stackoverflow.com/questions/630453/what-is-the-difference-between-post-and-put-in-http">...</a>
      * @param newMeal New meal to be added from the request body (JSON).
      * @return Meal added, or null if meal already exists.
+     * @throws MealExistsException thrown when meal already exists
      */
     @PutMapping("/restrpc/add")
     Meal addMeal(@RequestBody Meal newMeal) {
@@ -61,6 +60,7 @@ public class MealsRestRpcStyleController {
      * @param id ID of the meal to be edited from the path variable.
      * @param newMeal New data from the request body (JSON).
      * @return The new meal
+     * @throws MealNotFoundException thrown when id is not matching to any meals.
      */
     @PostMapping("/restrpc/update/{id}")
     Meal updateMeal(@PathVariable String id, @RequestBody Meal newMeal) {
@@ -70,9 +70,20 @@ public class MealsRestRpcStyleController {
         else throw new MealNotFoundException(id);
     }
 
+    /**
+     * Delete a meal
+     * @param id meal ID to be deleted, retrieved from the path
+     * @return null
+     * @throws MealNotFoundException thrown when the meal to be deleted doesn't exist
+     */
     @DeleteMapping("/restrpc/delete/{id}")
     Meal deleteMeal(@PathVariable String id) {
         if (mealsRepository.deleteMeal(id)) return null;
         else throw new MealNotFoundException(id);
+    }
+
+    @PutMapping("/restrpc/addOrder")
+    OrderConfirmation addOrder(@RequestBody Order order) {
+        return mealsRepository.addOrder(order);
     }
 }
