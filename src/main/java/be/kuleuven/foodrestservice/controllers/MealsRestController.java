@@ -2,6 +2,9 @@ package be.kuleuven.foodrestservice.controllers;
 
 import be.kuleuven.foodrestservice.domain.Meal;
 import be.kuleuven.foodrestservice.domain.MealsRepository;
+import be.kuleuven.foodrestservice.domain.Order;
+import be.kuleuven.foodrestservice.domain.OrderConfirmation;
+import be.kuleuven.foodrestservice.exceptions.InvalidOrderException;
 import be.kuleuven.foodrestservice.exceptions.MealNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -87,10 +90,32 @@ public class MealsRestController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    @PutMapping("/rest/addOrder")
+    ResponseEntity<?> addOrder(@RequestBody Order order) {
+        try {
+            OrderConfirmation confirmation = mealsRepository.addOrder(order);
+            return ResponseEntity.ok(confirmationToEntityModel(confirmation.id(), confirmation));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/rest/orders/{id}")
+    EntityModel<?> getOrder(@PathVariable int id) {
+        OrderConfirmation order = mealsRepository.findOrderConfirmation(id).orElseThrow(() -> new InvalidOrderException("Order not found"));
+
+        return confirmationToEntityModel(id, order);
+    }
+
     private EntityModel<Meal> mealToEntityModel(String id, Meal meal) {
         return EntityModel.of(meal,
                 linkTo(methodOn(MealsRestController.class).getMealById(id)).withSelfRel(),
                 linkTo(methodOn(MealsRestController.class).getMeals()).withRel("rest/meals"));
+    }
+
+    private EntityModel<OrderConfirmation> confirmationToEntityModel(int id, OrderConfirmation order) {
+        return EntityModel.of(order,
+                linkTo(methodOn(MealsRestController.class).getOrder(id)).withSelfRel());
     }
 
 }

@@ -15,7 +15,8 @@ public class MealsRepository {
     // map: id -> meal
     private static final Map<String, Meal> meals = new HashMap<>();
 
-    private static final Map<Integer, OrderConfirmation> orders = new HashMap<>();
+    private static final List<OrderConfirmation> orders = new ArrayList<>();
+    private static Integer orderCount = 0;
 
     @PostConstruct
     public void initData() {
@@ -55,6 +56,10 @@ public class MealsRepository {
         Assert.notNull(id, "The meal id must not be null");
         Meal meal = meals.get(id);
         return Optional.ofNullable(meal);
+    }
+
+    public Optional<OrderConfirmation> findOrderConfirmation(int id) {
+        return Optional.ofNullable(orders.get(id));
     }
 
     public List<Meal> findMeals(List<String> names) throws MealNotFoundException {
@@ -153,6 +158,7 @@ public class MealsRepository {
             LocalDateTime time = LocalDateTime.now().plusMinutes(30);
 
             OrderConfirmation confirmation = new OrderConfirmation(
+                    orderCount,
                     String.format("Thank you for your order! The total is £%.2f. " +
                             "We will deliver to your address, %s, " +
                             "at approximately %d:%d",
@@ -160,10 +166,8 @@ public class MealsRepository {
                     order.getAddress(), orderMeals, total, time
             );
 
-            if (orders.containsKey(confirmation.hashCode()))
-                throw new InvalidOrderException("Order already exists");
-
-            orders.put(confirmation.hashCode(), confirmation);
+            orders.add(confirmation);
+            orderCount++;
 
             return confirmation;
         }
