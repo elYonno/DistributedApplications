@@ -24,7 +24,7 @@ public class BookingServer {
         }
 
         try {
-            BookingInterface stub = (BookingInterface) UnicastRemoteObject.exportObject(server, 8080);
+            BookingInterface stub = (BookingInterface) UnicastRemoteObject.exportObject(server, 8081);
             registry.rebind("Hotel", stub);
             logger.log(Level.INFO, "Stub registered");
         } catch (RemoteException exception) {

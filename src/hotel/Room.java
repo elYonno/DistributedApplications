@@ -39,11 +39,7 @@ public class Room {
 
 	public synchronized void addBooking(BookingDetail bookingDetail) {
 		logger.log(Level.INFO, "Adding booking to room {0}", roomNumber);
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			logger.log(Level.WARNING, "Could not sleep");
-		}
+
 		bookings.add(bookingDetail);
 		String message = String.format(
 				Locale.ENGLISH,"Booking for %s added to room %d",
